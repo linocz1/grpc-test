@@ -1,0 +1,19 @@
+syntax = "proto3";
+
+package helloworld;
+
+// 定义请求消息类型
+message HelloRequest {
+  string name = 1;
+}
+
+// 定义响应消息类型
+message HelloResponse {
+  string message = 1;
+}
+
+// 定义服务接口
+service Greeter {
+  // 定义 RPC 方法，输入和输出参数为请求和响应消息类型
+  rpc SayHello(HelloRequest) returns (HelloResponse) {}
+}
