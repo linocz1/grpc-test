@@ -154,3 +154,35 @@ http://your_vps_ip_address:9000
 5.创建管理员账号和密码，选择“Manage the Docker environment”选项，然后单击“Create User”按钮即可完成安装！
 
 希望这能帮助您在单个 VPS 上安装 Portainer。
+
+
+在Python中，可以使用collections模块中的deque双端队列来实现最大长度的队列。deque双端队列既可以在队尾添加元素，也可以在队首删除元素。它支持限制队列长度，当队列满时，自动出队。这个功能可以通过指定“maxlen”参数来实现。
+
+以下是一个示例代码：
+
+```python
+from collections import deque
+
+queue = deque(maxlen=10)  # 设置队列最大长度为10
+
+# 往队列里添加元素
+queue.append(1)
+queue.append(2)
+queue.append(3)
+
+print(queue)  # 输出：deque([1, 2, 3], maxlen=10)
+
+# 当队列长度超过最大长度时，会自动出队
+queue.append(4)
+queue.append(5)
+queue.append(6)
+queue.append(7)
+queue.append(8)
+queue.append(9)
+queue.append(10)
+queue.append(11)
+
+print(queue)  # 输出：deque([2, 3, 4, 5, 6, 7, 8, 9, 10, 11], maxlen=10)
+```
+
+在这个例子中，我们创建了一个长度为10的deque对象（即双端队列），并且往队列里面添加了一些元素。当队列长度超过10时，deque对象将自动删除队首元素，以保证队列长度不会超过设定的最大值。
