@@ -186,3 +186,36 @@ print(queue)  # 输出：deque([2, 3, 4, 5, 6, 7, 8, 9, 10, 11], maxlen=10)
 ```
 
 在这个例子中，我们创建了一个长度为10的deque对象（即双端队列），并且往队列里面添加了一些元素。当队列长度超过10时，deque对象将自动删除队首元素，以保证队列长度不会超过设定的最大值。
+
+
+
+要将一个 `pandas.DataFrame` 对象设置为上下文变量的默认值，可以使用 `pandas.DataFrame.to_dict()` 方法将其转换为字典对象，并将其作为默认值传递给 `contextvars.ContextVar()` 的构造函数。然后可以在协程中使用 `ctx_var.get()` 获取上下文变量的值，这将返回字典对象，再从字典对象中使用 `pandas.DataFrame.from_dict()` 创建 DataFrame 对象。
+
+以下是一个示例代码：
+
+```python
+import contextvars
+import pandas as pd
+
+# 定义上下文变量
+df_ctx_var = contextvars.ContextVar('df', default=pd.DataFrame())
+
+# 创建一个 DataFrame 对象并设置为默认值
+data = {'col1': [1, 2], 'col2': [3, 4]}
+df = pd.DataFrame.from_dict(data)
+df_ctx_var.set(df)
+
+# 定义一个协程
+async def coro():
+    # 从上下文变量中获取 DataFrame 对象
+    df = df_ctx_var.get()
+    print(f"Data from coroutine:\n{df}")
+
+# 运行协程事件循环
+loop = asyncio.get_event_loop()
+loop.run_until_complete(coro())
+```
+
+在这个示例中，我们首先创建一个包含两列数据的简单 DataFrame 对象。我们然后将其转换为字典并将其作为默认值传递给 `contextvars.ContextVar()` 的构造函数。接下来，我们定义了一个名为 `coro` 的协程，在其中使用 `df_ctx_var.get()` 获取上下文变量的值。由于这是默认值，因此我们应该得到创建的 DataFrame 对象。最后，我们运行了事件循环以启动协程。
+
+需要注意的是，在使用 `contextvars` 时，同样要确保在同一协程中创建和读取上下文变量。这意味着如果需要在不同的协程中访问上下文变量的值，则可能需要将其传递给每个协程。
