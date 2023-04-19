@@ -1,0 +1,12 @@
+syntax = "proto3";
+
+service TimestampService {
+  rpc GetTimestampStream(Empty) returns (stream Timestamp);
+}
+
+message Empty {}
+
+message Timestamp {
+  string message = 1;
+  int64 timestamp = 2;
+}
