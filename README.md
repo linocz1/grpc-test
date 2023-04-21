@@ -29,7 +29,7 @@
 3. 然后，使用 protobuf 编译器根据 .proto 文件生成所需的代码：
 
    ```
-   python -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. messages.proto
+   python3 -m grpc_tools.protoc -I. --python_out=. --grpc_python_out=. messages.proto
    ```
 
 4. 现在，可以编写服务器端代码。以下是一个简单的示例：
