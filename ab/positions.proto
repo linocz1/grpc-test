@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+service PositionService {
+  rpc GetPositionStream(PositionRequest) returns (stream PositionResponse);
+}
+
+message PositionRequest {
+  string symbol = 1;
+  string direction = 2;
+}
+
+message PositionResponse {
+  string symbol = 1;
+  float size = 2;
+}

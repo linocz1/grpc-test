@@ -1,5 +1,8 @@
+import pandas as pd
+import contextvars
 import time
 import grpc
+
 import timestamp_pb2
 import timestamp_pb2_grpc
 
@@ -7,10 +10,13 @@ from concurrent import futures
 
 
 class TimestampService(timestamp_pb2_grpc.TimestampServiceServicer):
+    def __init__(self):
+        self.df = contextvars.ContextVar('df', default=pd.DataFrame([]))
+
     def GetTimestampStream(self, request_iterator, context):
         while True:
             current_time = time.time()
-            print(f"Current time: {current_time}")
+            print(f"Current time: {current_time}, df: {self.df.get()}")
 
             yield timestamp_pb2.Timestamp(
                 message=f"Current time: {current_time}",
