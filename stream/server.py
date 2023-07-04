@@ -14,8 +14,16 @@ class TimestampService(timestamp_pb2_grpc.TimestampServiceServicer):
     def __init__(self):
         pass
 
+    async def UpdateTimestampStream(self, request_iterator, context):
+        async for timestamp in request_iterator:
+            print(f"Received message: {timestamp.message}, Time: {timestamp.timestamp}")
+
+            yield timestamp_pb2.Response(result="ok")
+
+
     async def GetTimestampStream(self, request_iterator, context):
-        while True:
+        cnt = 0
+        while cnt <= 5:
             current_time = time.time()
             print(f"Current time: {current_time}")
 
@@ -23,6 +31,7 @@ class TimestampService(timestamp_pb2_grpc.TimestampServiceServicer):
                 message=f"Current time: {current_time}",
                 timestamp=int(current_time),
             )
+            cnt += 1
 
             await asyncio.sleep(1)
 
