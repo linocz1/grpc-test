@@ -3,38 +3,59 @@ import asyncio
 import timestamp_pb2
 import timestamp_pb2_grpc
 
+
 async def getTimestamp():
-    async with grpc.aio.insecure_channel('localhost:50098') as channel:
+    async with grpc.aio.insecure_channel("localhost:50098") as channel:
         stub = timestamp_pb2_grpc.TimestampServiceStub(channel)
         try:
             async for timestamp in stub.GetTimestampStream(timestamp_pb2.Empty()):
-                print(f"Received message: {timestamp.message}, Time: {timestamp.timestamp}")
+                print(
+                    f"Received message: {timestamp.message}, Time: {timestamp.timestamp}"
+                )
         except KeyboardInterrupt:
             print("Keyboard interrupt received. Stopping program...")
+
+
+async def iterate_data():
+    i = 0
+    # Generate a stream of requests using some logic or external data source
+    while True:
+        # Perform necessary steps to generate the next request object
+        # For example, read from a file or listen to a stream
+        # Yield the request object
+        yield timestamp_pb2.Timestamp(message=f"Hello{i}", timestamp=i),
+        i += 1
+        await asyncio.sleep(1)  # 模拟每隔一秒发送一个请求
+
 
 async def updateTimestamp():
-    async with grpc.aio.insecure_channel('localhost:50098') as channel:
-        stub = timestamp_pb2_grpc.TimestampServiceStub(channel)
+    try:
+        async with grpc.aio.insecure_channel("localhost:50098") as channel:
+            stub = timestamp_pb2_grpc.TimestampServiceStub(channel)
 
-        # 创建请求迭代器
-        requests = [
-            timestamp_pb2.Timestamp(message="Hello1", timestamp=123),
-            timestamp_pb2.Timestamp(message="Hello2", timestamp=456),
-            timestamp_pb2.Timestamp(message="Hello3", timestamp=789),
-        ]
-        try:
-            async for response in stub.UpdateTimestampStream(iter(requests)):
-                print(f"Received response: {response.result}")
-        except KeyboardInterrupt:
-            print("Keyboard interrupt received. Stopping program...")
+            # 创建请求迭代器
+            requests = [
+                timestamp_pb2.Timestamp(message="Hello1", timestamp=123),
+                timestamp_pb2.Timestamp(message="Hello2", timestamp=456),
+                timestamp_pb2.Timestamp(message="Hello3", timestamp=789),
+            ]
+            try:
+                async for response in stub.UpdateTimestampStream(iterate_data()):
+                    print(f"Received response: {response.result}")
+            except KeyboardInterrupt:
+                print("Keyboard interrupt received. Stopping program...")
+    except asyncio.CancelledError:
+        print("CancelledError received. Stopping program...")
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
 
 async def run():
     task1 = asyncio.create_task(getTimestamp())
     task2 = asyncio.create_task(updateTimestamp())
-    
+
     await asyncio.gather(task1, task2)
 
-if __name__ == '__main__':
-    asyncio.run(run())
 
+if __name__ == "__main__":
+    asyncio.run(run())
