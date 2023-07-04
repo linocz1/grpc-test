@@ -32,8 +32,8 @@ async def updateTimestamp():
 async def run():
     task1 = asyncio.create_task(getTimestamp())
     task2 = asyncio.create_task(updateTimestamp())
-    await task1
-    await task2
+    
+    await asyncio.gather(task1, task2)
 
 if __name__ == '__main__':
     asyncio.run(run())
