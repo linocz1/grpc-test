@@ -3,6 +3,7 @@ import contextvars
 import time
 import grpc
 import asyncio
+import signal
 
 import timestamp_pb2
 import timestamp_pb2_grpc
@@ -20,7 +21,6 @@ class TimestampService(timestamp_pb2_grpc.TimestampServiceServicer):
 
             yield timestamp_pb2.Response(result="ok")
 
-
     async def GetTimestampStream(self, request_iterator, context):
         cnt = 0
         while cnt <= 5:
@@ -35,16 +35,23 @@ class TimestampService(timestamp_pb2_grpc.TimestampServiceServicer):
 
             await asyncio.sleep(1)
 
+
 async def serve():
     server = grpc.aio.server()
-    timestamp_pb2_grpc.add_TimestampServiceServicer_to_server(TimestampService(), server)
+    timestamp_pb2_grpc.add_TimestampServiceServicer_to_server(
+        TimestampService(), server
+    )
     server.add_insecure_port("[::]:50098")
-    await server.start()
+    
+    loop = asyncio.get_running_loop()
 
-    try:
-        await server.wait_for_termination()
-    except KeyboardInterrupt:
-        server.stop(0)
+    # Register signal handler for SIGINT (KeyboardInterrupt)
+    for sig in (signal.SIGINT, signal.SIGTERM):
+        loop.add_signal_handler(sig, lambda: asyncio.create_task(server.stop(0)))
+    
+    await server.start()
+    
+    await server.wait_for_termination()
 
 if __name__ == "__main__":
     asyncio.run(serve())
