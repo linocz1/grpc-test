@@ -1,4 +1,5 @@
 import grpc
+import time
 import asyncio
 import timestamp_pb2
 import timestamp_pb2_grpc
@@ -17,15 +18,22 @@ async def getTimestamp():
 
 
 async def iterate_data():
-    i = 0
     # Generate a stream of requests using some logic or external data source
     while True:
         # Perform necessary steps to generate the next request object
         # For example, read from a file or listen to a stream
         # Yield the request object
-        yield timestamp_pb2.Timestamp(message=f"Hello{i}", timestamp=i),
-        i += 1
-        await asyncio.sleep(1)  # 模拟每隔一秒发送一个请求
+        timestamp = await timestampQueue.get()
+        print(f"Got timestamp: {int(timestamp)}")
+
+        yield timestamp_pb2.Timestamp(message=f"Hello{int(timestamp)}", timestamp=int(timestamp)),
+
+
+# 每隔一秒钟向队列中添加一个时间戳
+async def addTimestamp():
+    while True:
+        await timestampQueue.put(time.time())
+        await asyncio.sleep(3)
 
 
 async def updateTimestamp():
@@ -33,12 +41,6 @@ async def updateTimestamp():
         async with grpc.aio.insecure_channel("localhost:50098") as channel:
             stub = timestamp_pb2_grpc.TimestampServiceStub(channel)
 
-            # 创建请求迭代器
-            requests = [
-                timestamp_pb2.Timestamp(message="Hello1", timestamp=123),
-                timestamp_pb2.Timestamp(message="Hello2", timestamp=456),
-                timestamp_pb2.Timestamp(message="Hello3", timestamp=789),
-            ]
             try:
                 async for response in stub.UpdateTimestampStream(iterate_data()):
                     print(f"Received response: {response.result}")
@@ -51,11 +53,13 @@ async def updateTimestamp():
 
 
 async def run():
+    task3 = asyncio.create_task(addTimestamp())
     task1 = asyncio.create_task(getTimestamp())
     task2 = asyncio.create_task(updateTimestamp())
 
-    await asyncio.gather(task1, task2)
+    await asyncio.gather(task1, task2, task3)
 
 
 if __name__ == "__main__":
+    timestampQueue = asyncio.Queue()
     asyncio.run(run())
