@@ -24,7 +24,8 @@ async def iterate_data():
         # For example, read from a file or listen to a stream
         # Yield the request object
         timestamp = await timestampQueue.get()
-        print(f"Got timestamp: {int(timestamp)}")
+        now = time.time()
+        print(f"Got timestamp: {int(timestamp)}, 消耗时间: {round(now - timestamp, 3)}")
 
         yield timestamp_pb2.Timestamp(message=f"Hello{int(timestamp)}", timestamp=int(timestamp)),
 
@@ -32,8 +33,9 @@ async def iterate_data():
 # 每隔一秒钟向队列中添加一个时间戳
 async def addTimestamp():
     while True:
-        await timestampQueue.put(time.time())
-        await asyncio.sleep(3)
+        timestampQueue.put_nowait(time.time())
+        await asyncio.sleep(0.001)
+        
 
 
 async def updateTimestamp():
@@ -53,9 +55,9 @@ async def updateTimestamp():
 
 
 async def run():
-    task3 = asyncio.create_task(addTimestamp())
     task1 = asyncio.create_task(getTimestamp())
     task2 = asyncio.create_task(updateTimestamp())
+    task3 = asyncio.create_task(addTimestamp())
 
     await asyncio.gather(task1, task2, task3)
 
